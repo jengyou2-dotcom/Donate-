@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OBS Overlay</title>
+
+<style>
+  body {
+    margin: 0;
+    background: transparent;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+  }
+</style>
+</head>
+<body>
+
+<div id="overlayBox"></div>
+
+<script>
+const POLL = 3000;
+let lastSeq = 0;
+
+// 🔑 ดึง binId จาก URL
+const params = new URLSearchParams(location.search);
+const binId = params.get("b");
+
+if (!binId) {
+  document.body.innerHTML = "<h2 style='color:white'>No binId provided</h2>";
+}
+
+// 🔄 polling
+setInterval(poll, POLL);
+
+async function poll() {
+  try {
+    const res = await fetch("https://api.jsonbin.io/v3/b/" + binId + "/latest", {
+      cache: "no-store"
+    });
+
+    const data = await res.json();
+    const rec = data.record || { seq: 0, donations: [] };
+
+    const newDons = (rec.donations || []).filter(d => d.seq > lastSeq);
+
+    if (newDons.length) {
+      lastSeq = Math.max(...newDons.map(d => d.seq));
+      newDons.forEach(d => showOverlay(d));
+    }
+
+  } catch (e) {
+    console.log("Poll error:", e);
+  }
+}
+
+// 🎬 แสดง overlay
+function showOverlay(d) {
+  const el = document.createElement("div");
+
+  el.style.position = "fixed";
+  el.style.left = "50%";
+  el.style.bottom = "120px";
+  el.style.transform = "translateX(-50%)";
+  el.style.textAlign = "center";
+  el.style.opacity = "0";
+  el.style.transition = "all 0.5s ease";
+  el.style.pointerEvents = "none";
+
+  el.innerHTML = `
+    <img src="gifs/donate.gif?${Date.now()}" 
+         style="width:240px; display:block; margin:auto;">
+    
+    <div style="
+      font-size:32px;
+      font-weight:bold;
+      color:white;
+      text-shadow:0 0 10px rgba(0,0,0,0.8);
+      margin-top:10px;
+    ">
+      ${escapeHTML(d.name)} donated ${escapeHTML(d.cur)}${escapeHTML(String(d.amt))}
+    </div>
+
+    <div style="
+      font-size:20px;
+      color:#ddd;
+      text-shadow:0 0 8px rgba(0,0,0,0.7);
+      margin-top:5px;
+    ">
+      ${escapeHTML(d.msg || "")}
+    </div>
+  `;
+
+  document.body.appendChild(el);
+
+  // fade in
+  setTimeout(() => {
+    el.style.opacity = "1";
+    el.style.transform = "translateX(-50%) translateY(-10px)";
+  }, 50);
+
+  // fade out
+  setTimeout(() => {
+    el.style.opacity = "0";
+    el.style.transform = "translateX(-50%) translateY(20px)";
+    setTimeout(() => el.remove(), 500);
+  }, 6000);
+}
+
+// 🔒 กัน HTML injection
+function escapeHTML(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+</script>
+
+</body>
+</html>
