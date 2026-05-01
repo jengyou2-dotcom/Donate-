@@ -227,50 +227,57 @@ function showAlert(d) {
 }
 //-- overlay
 
-function showOverlay(d) {
+function renderOverlay(d) {
   const box = document.getElementById("overlayBox");
 
   const el = document.createElement("div");
 
+  // container (centered + transparent)
   el.style.position = "fixed";
+  el.style.left = "50%";
   el.style.bottom = "120px";
-  el.style.left = "80px";
-  el.style.background = "rgba(0,0,0,0.85)";
-  el.style.color = "white";
-  el.style.padding = "25px 30px";
-  el.style.borderRadius = "16px";
-  el.style.fontSize = "26px";
-  el.style.display = "flex";
-  el.style.alignItems = "center";
-  el.style.gap = "20px";
+  el.style.transform = "translateX(-50%)";
+  el.style.textAlign = "center";
   el.style.opacity = "0";
-  el.style.transform = "translateY(30px)";
   el.style.transition = "all 0.5s ease";
+  el.style.pointerEvents = "none"; // OBS friendly
 
+  // 🔥 content
   el.innerHTML = `
-    <img src="gifs/donate.gif" width="120">
-    <div>
-      <div style="font-size:30px;font-weight:bold;">
-        ${d.name} donated ${d.cur}${d.amt}
-      </div>
-      <div style="font-size:18px;color:#ccc;">
-        ${d.msg || ""}
-      </div>
+    <img src="gifs/donate.gif?${Date.now()}" 
+         style="width:220px; display:block; margin:0 auto 10px auto;">
+    
+    <div style="
+      font-size:32px;
+      font-weight:800;
+      color:white;
+      text-shadow: 0 0 10px rgba(0,0,0,0.8);
+    ">
+      ${d.name} donated ${d.cur}${d.amt}
+    </div>
+
+    <div style="
+      font-size:20px;
+      color:#ddd;
+      margin-top:6px;
+      text-shadow: 0 0 8px rgba(0,0,0,0.7);
+    ">
+      ${d.msg || ""}
     </div>
   `;
 
   box.appendChild(el);
 
-  // animate in
+  // 🎬 animate in
   setTimeout(() => {
     el.style.opacity = "1";
-    el.style.transform = "translateY(0)";
+    el.style.transform = "translateX(-50%) translateY(-10px)";
   }, 50);
 
-  // animate out
+  // 🌫 fade out
   setTimeout(() => {
     el.style.opacity = "0";
-    el.style.transform = "translateY(30px)";
+    el.style.transform = "translateX(-50%) translateY(20px)";
     setTimeout(() => el.remove(), 500);
   }, 6000);
 }
