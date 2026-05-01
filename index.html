@@ -32,10 +32,12 @@ if (!mode) {
     <button onclick="hostClick()">Host</button>
     <button onclick="guestClick()">Join</button>
   `;
+  
 } else {
   boot();
 }
 
+  
 // ───── BOOT ─────
 async function boot() {
   try {
@@ -89,8 +91,25 @@ async function getRecord() {
 
 // ───── HOST ─────
 function enterHost() {
-  document.body.innerHTML = "<h2>OBS Overlay Running...</h2>";
+  document.body.innerHTML = `
+    <h2>OBS Overlay Running...</h2>
+    <button onclick="enableAudio()">🔊 Enable Sound</button>
+  `;
+
   setInterval(poll, POLL);
+}
+
+let audioUnlocked = false;
+
+function enableAudio() {
+  audioUnlocked = true;
+
+  // unlock audio
+  const a = new Audio();
+  a.src = "data:audio/mp3;base64,//uQxAAAAAAAAAAAAAAAAAAAA...";
+  a.play().catch(()=>{});
+
+  alert("Sound enabled!");
 }
 
 async function poll() {
@@ -161,14 +180,16 @@ async function fire() {
 }
 
 // ----- Speech //
- function speakDonation(d) {
+function speakDonation(d) {
+  if (!audioUnlocked) return;
+
   const text = `${d.name} โดเนท ${d.amt} บาท ${d.msg || ""}`;
 
   const url = "https://translate.google.com/translate_tts?ie=UTF-8&tl=th&client=tw-ob&q=" 
               + encodeURIComponent(text);
 
   const audio = new Audio(url);
-  audio.play();
+  audio.play().catch(err => console.log("Audio blocked:", err));
 }
 
 // ───── ALERT ─────
