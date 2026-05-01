@@ -95,11 +95,17 @@ function enterHost() {
     <h2>OBS Overlay Running...</h2>
     <button onclick="toggleMode()">🔄 Switch Mode</button>
     <button onclick="enableAudio()">🔊 Enable Sound</button>
+    <button onclick="clearChat()">🧹 Clear Chat</button>
+
     <div id="chatBox"></div>
     <div id="overlayBox"></div>
   `;
 
   setInterval(poll, POLL);
+}
+function clearChat() {
+  const chat = document.getElementById("chatBox");
+  if (chat) chat.innerHTML = "";
 }
 
 function toggleMode() {
@@ -225,37 +231,49 @@ function showOverlay(d) {
   const box = document.getElementById("overlayBox");
 
   const el = document.createElement("div");
+
   el.style.position = "fixed";
-  el.style.bottom = "100px";
-  el.style.left = "50px";
-  el.style.background = "rgba(0,0,0,0.8)";
+  el.style.bottom = "120px";
+  el.style.left = "80px";
+  el.style.background = "rgba(0,0,0,0.85)";
   el.style.color = "white";
-  el.style.padding = "20px";
-  el.style.borderRadius = "10px";
-  el.style.fontSize = "20px";
+  el.style.padding = "25px 30px";
+  el.style.borderRadius = "16px";
+  el.style.fontSize = "26px";
+  el.style.display = "flex";
+  el.style.alignItems = "center";
+  el.style.gap = "20px";
   el.style.opacity = "0";
-  el.style.transition = "opacity 0.5s";
+  el.style.transform = "translateY(30px)";
+  el.style.transition = "all 0.5s ease";
 
   el.innerHTML = `
-    <img src="gifs/donate.gif" width="80">
-    <b>${d.name}</b> donated ${d.cur}${d.amt}<br>
-    ${d.msg || ""}
+    <img src="gifs/donate.gif" width="120">
+    <div>
+      <div style="font-size:30px;font-weight:bold;">
+        ${d.name} donated ${d.cur}${d.amt}
+      </div>
+      <div style="font-size:18px;color:#ccc;">
+        ${d.msg || ""}
+      </div>
+    </div>
   `;
 
   box.appendChild(el);
 
-  // fade in
+  // animate in
   setTimeout(() => {
     el.style.opacity = "1";
+    el.style.transform = "translateY(0)";
   }, 50);
 
-  // fade out
+  // animate out
   setTimeout(() => {
     el.style.opacity = "0";
+    el.style.transform = "translateY(30px)";
     setTimeout(() => el.remove(), 500);
-  }, 5000);
+  }, 6000);
 }
-
 // ───── NAV ─────
 function hostClick() {
   const r = Math.random().toString(36).slice(2,8);
