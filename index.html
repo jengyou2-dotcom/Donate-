@@ -16,7 +16,8 @@ const JBIN_KEY = '$2a$10$Kz2mznm8rZktsakdVWFfn.Cl0Hbu3QNEfyBj2YpFElKJ7XMEnV/NS';
 
 const POLL = 3000;
 
-let binId = null, lastSeq = -1;
+let binId = null;
+let lastSeq = 0; // 👈 ADD THIS LINE
 let mode, room;
 
 const SP = new URLSearchParams(location.search);
@@ -96,11 +97,11 @@ async function poll() {
   try {
     const rec = await getRecord();
 
-    console.log("DATA:", rec); // debug
+    const newDons = rec.donations.filter(d => d.seq > lastSeq);
 
-    if (rec.donations.length) {
-      rec.donations.forEach(showAlert);
-      lastSeq = rec.seq;
+    if (newDons.length) {
+      lastSeq = Math.max(...newDons.map(d => d.seq));
+      newDons.forEach(showAlert);
     }
 
   } catch (e) {
@@ -111,22 +112,23 @@ async function poll() {
 // ───── CONTROLLER ─────
 function enterCtrl() {
   document.body.innerHTML = `
-    <h2>Send Donation</h2>
-    <input id="name" placeholder="Name"><br><br>
-    <input id="amt" type="number" placeholder="Amount"><br><br>
-    <button onclick="fire()">Send</button>
-  `;
+  <h2>Send Donation</h2>
+  <input id="name" placeholder="Name"><br><br>
+  <input id="amt" type="number" placeholder="Amount"><br><br>
+  <input id="msg" placeholder="Message (optional)"><br><br>
+  <button onclick="fire()">Send</button>
+`;
 }
 
 async function fire() {
-  const payload = {
-    name: document.getElementById('name').value || 'Anon',
-    amt: parseFloat(document.getElementById('amt').value) || 5,
-    cur: '$',
-    msg: '',
-    color: '#1D9E75',
-    ts: Date.now()
-  };
+ const payload = {
+  name: document.getElementById('name').value || 'Anon',
+  amt: parseFloat(document.getElementById('amt').value) || 5,
+  msg: document.getElementById('msg').value || '',
+  cur: '$',
+  color: '#1D9E75',
+  ts: Date.now()
+};
 
   try {
     const rec = await getRecord();
@@ -161,8 +163,19 @@ async function fire() {
 // ───── ALERT ─────
 function showAlert(d) {
   const el = document.createElement('div');
-  el.innerHTML = `<h3>${d.name} donated ${d.cur}${d.amt}</h3>`;
-  document.body.appendChild(el);
+
+  el.style.marginBottom = "10px";
+
+  el.innerHTML = `
+    <div style="font-size:20px;font-weight:bold;">
+      ${d.name} donated ${d.cur}${d.amt}
+    </div>
+    <div style="font-size:14px;color:gray;">
+      ${d.msg || ""}
+    </div>
+  `;
+
+  document.body.prepend(el);
 }
 
 // ───── NAV ─────
