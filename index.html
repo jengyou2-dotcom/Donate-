@@ -160,11 +160,31 @@ async function fire() {
   }
 }
 
+// ----- Speech //
+  function speakDonation(d) {
+  const msg = d.msg ? `Message: ${d.msg}` : "";
+
+  const text = `${d.name} donated ${d.cur}${d.amt}. ${msg}`;
+
+  const utter = new SpeechSynthesisUtterance(text);
+
+  // voice settings
+  utter.rate = 1;      // speed (0.5 - 2)
+  utter.pitch = 1;     // tone (0 - 2)
+  utter.volume = 1;    // volume (0 - 1)
+
+  // optional: pick voice (depends on browser)
+  const voices = speechSynthesis.getVoices();
+  if (voices.length > 0) {
+    utter.voice = voices.find(v => v.lang.includes("en")) || voices[0];
+  }
+
+  speechSynthesis.speak(utter);
+}
+
 // ───── ALERT ─────
 function showAlert(d) {
   const el = document.createElement('div');
-
-  el.style.marginBottom = "10px";
 
   el.innerHTML = `
     <div style="font-size:20px;font-weight:bold;">
@@ -176,7 +196,11 @@ function showAlert(d) {
   `;
 
   document.body.prepend(el);
+
+  // 🔥 ADD THIS LINE
+  speakDonation(d);
 }
+
 
 // ───── NAV ─────
 function hostClick() {
