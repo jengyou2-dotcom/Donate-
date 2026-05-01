@@ -10,15 +10,13 @@
 <!-- (UI trimmed for brevity — keep your original HTML UI here unchanged) -->
 
 <script>
-// ✅ CONFIG
+// CONFIG
 const JBIN = 'https://api.jsonbin.io/v3/b';
-const JBIN_KEY = '$2a$10$Kz2mznm8rZktsakdVWFfn.Cl0Hbu3QNEfyBj2YpFElKJ7XMEnV/NS'; // 🔥 PUT YOUR KEY HERE
+const JBIN_KEY = 'YOUR_JSONBIN_KEY_HERE'; // PUT YOUR KEY
 
 const POLL = 3000;
-const SHOW = 7000;
 
 let binId = null, lastSeq = 0;
-let queue = [], busy = false;
 let mode, room;
 
 const SP = new URLSearchParams(location.search);
@@ -26,7 +24,7 @@ mode = SP.get('m');
 room = SP.get('r');
 binId = SP.get('b');
 
-// ───────────── BOOT ─────────────
+// ───── START ─────
 if (!mode) {
   document.body.innerHTML = `
     <h2>Fake Donation</h2>
@@ -37,6 +35,7 @@ if (!mode) {
   boot();
 }
 
+// ───── BOOT ─────
 async function boot() {
   try {
     if (!binId) {
@@ -54,8 +53,8 @@ async function boot() {
 
       if (!res.ok) throw new Error(await res.text());
 
-      const d = await res.json();
-      binId = d.metadata.id;
+      const data = await res.json();
+      binId = data.metadata.id;
 
       const u = new URL(location.href);
       u.searchParams.set('b', binId);
@@ -71,7 +70,23 @@ async function boot() {
   }
 }
 
-// ───────────── HOST (OBS) ─────────────
+// ───── SAFE GET RECORD ─────
+async function getRecord() {
+  const res = await fetch(JBIN + '/' + binId + '/latest', {
+    headers: { 'X-Master-Key': JBIN_KEY },
+    cache: 'no-store'
+  });
+
+  const data = await res.json();
+  const rec = data.record || {};
+
+  return {
+    seq: typeof rec.seq === "number" ? rec.seq : 0,
+    donations: Array.isArray(rec.donations) ? rec.donations : []
+  };
+}
+
+// ───── HOST ─────
 function enterHost() {
   document.body.innerHTML = "<h2>OBS Overlay Running...</h2>";
   setInterval(poll, POLL);
@@ -79,29 +94,21 @@ function enterHost() {
 
 async function poll() {
   try {
-    const res = await fetch(JBIN + '/' + binId + '/latest', {
-      headers: { 'X-Master-Key': JBIN_KEY },
-      cache: 'no-store'
-    });
+    const rec = await getRecord();
 
-    if (!res.ok) return;
-
-    const d = await res.json();
-    const rec = d.record || { seq: 0, donations: [] };
-
-    const newDons = rec.donations.filter(x => x.seq > lastSeq);
+    const newDons = rec.donations.filter(d => d.seq > lastSeq);
 
     if (newDons.length) {
-      lastSeq = Math.max(...newDons.map(x => x.seq));
+      lastSeq = Math.max(...newDons.map(d => d.seq));
       newDons.forEach(showAlert);
     }
 
   } catch (e) {
-    console.error(e);
+    console.error("Poll error:", e);
   }
 }
 
-// ───────────── CONTROLLER ─────────────
+// ───── CONTROLLER ─────
 function enterCtrl() {
   document.body.innerHTML = `
     <h2>Send Donation</h2>
@@ -122,22 +129,14 @@ async function fire() {
   };
 
   try {
-    // GET
-    const gr = await fetch(JBIN + '/' + binId + '/latest', {
-      headers: { 'X-Master-Key': JBIN_KEY },
-      cache: 'no-store'
-    });
-
-    const gd = await gr.json();
-    const rec = gd.record || { seq: 0, donations: [] };
+    const rec = await getRecord();
 
     const newSeq = rec.seq + 1;
     payload.seq = newSeq;
 
     const newDons = [...rec.donations, payload];
 
-    // PUT
-    const pr = await fetch(JBIN + '/' + binId, {
+    const res = await fetch(JBIN + '/' + binId, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -151,7 +150,7 @@ async function fire() {
       })
     });
 
-    if (!pr.ok) throw new Error(await pr.text());
+    if (!res.ok) throw new Error(await res.text());
 
     alert("Donation sent!");
 
@@ -161,19 +160,20 @@ async function fire() {
   }
 }
 
-// ───────────── ALERT ─────────────
+// ───── ALERT ─────
 function showAlert(d) {
-  const div = document.createElement('div');
-  div.innerHTML = `<h3>${d.name} donated ${d.cur}${d.amt}</h3>`;
-  document.body.appendChild(div);
+  const el = document.createElement('div');
+  el.innerHTML = `<h3>${d.name} donated ${d.cur}${d.amt}</h3>`;
+  document.body.appendChild(el);
 }
 
-// ───────────── LANDING ─────────────
+// ───── NAV ─────
 function hostClick() {
   const r = Math.random().toString(36).slice(2,8);
   const u = new URL(location.href);
   u.searchParams.set('m','host');
   u.searchParams.set('r',r);
+  u.searchParams.delete('b'); // 🔥 force new clean bin
   location.href = u.toString();
 }
 
@@ -185,6 +185,6 @@ function guestClick() {
   location.href = u.toString();
 }
 </script>
-
+  
 </body>
 </html>
