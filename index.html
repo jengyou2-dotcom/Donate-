@@ -10,7 +10,6 @@
   button { padding: 8px 16px; margin: 4px 4px 4px 0; cursor: pointer; }
   #chatBox { margin-top: 16px; }
   #overlayBox { position: fixed; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
-  #statusBar { font-size: 12px; color: gray; margin-bottom: 8px; }
 </style>
 </head>
 <body>
@@ -19,12 +18,12 @@ const JBIN     = 'https://api.jsonbin.io/v3/b';
 const JBIN_KEY = '$2a$10$Kz2mznm8rZktsakdVWFfn.Cl0Hbu3QNEfyBj2YpFElKJ7XMEnV/NS';
 const POLL     = 3000;
 
-let binId   = null;
-let lastSeq = 0;
+let binId       = null;
+let lastSeq     = 0;
 let lastClearTs = 0;
-let localModeUI = "chat"; // host's local view of the mode (for display only)
+let localModeUI = 'chat';
 
-const SP  = new URLSearchParams(location.search);
+const SP   = new URLSearchParams(location.search);
 const mode = SP.get('m');
 binId      = SP.get('b');
 
@@ -65,7 +64,7 @@ async function boot() {
 
   } catch(e) {
     console.error(e);
-    alert("Connection failed: " + e.message);
+    alert('Connection failed: ' + e.message);
   }
 }
 
@@ -78,56 +77,89 @@ async function getRecord() {
   const data = await res.json();
   const rec  = data.record || {};
   return {
-    seq:       typeof rec.seq       === 'number' ? rec.seq       : 0,
-    modeUI:    typeof rec.modeUI    === 'string'  ? rec.modeUI    : 'chat',
-    clearTs:   typeof rec.clearTs   === 'number'  ? rec.clearTs   : 0,
-    donations: Array.isArray(rec.donations)       ? rec.donations : []
+    seq:       typeof rec.seq     === 'number' ? rec.seq     : 0,
+    modeUI:    typeof rec.modeUI  === 'string'  ? rec.modeUI  : 'chat',
+    clearTs:   typeof rec.clearTs === 'number'  ? rec.clearTs : 0,
+    donations: Array.isArray(rec.donations)     ? rec.donations : []
   };
-}
-
-// ───── PUT RECORD (partial merge) ─────
-async function putRecord(patch) {
-  const rec = await getRecord();
-  const merged = { ...rec, ...patch };
-  const res = await fetch(JBIN + '/' + binId, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', 'X-Master-Key': JBIN_KEY },
-    body: JSON.stringify(merged)
-  });
-  if (!res.ok) throw new Error(await res.text());
-  return merged;
 }
 
 // ───── HOST ─────
 function enterHost() {
   document.body.innerHTML = `
-    <h2>OBS Overlay Running...</h2>
-    <div id="statusBar">Mode: <b id="modeLabel">chat</b></div>
+    <h2>OBS Overlay</h2>
+    <div style="margin-bottom:10px;">
+      <b>Mode:</b>
+      <button onclick="setMode('chat')">💬 Chat</button>
+      <button onclick="setMode('overlay')">🎬 Overlay</button>
+      &nbsp;<span id="modeLabel" style="color:gray;font-size:13px;">chat</span>
+    </div>
+    <button onclick="clearChat()">🧹 Clear Chat</button>
     <div id="chatBox"></div>
     <div id="overlayBox"></div>
   `;
+
+  // sync current state from bin on load
+  getRecord().then(rec => {
+    localModeUI = rec.modeUI;
+    lastClearTs = rec.clearTs;
+    lastSeq     = rec.seq;
+    updateModeLabel();
+  });
+
   setInterval(poll, POLL);
+}
+
+async function setMode(m) {
+  try {
+    const rec = await getRecord();
+    await fetch(JBIN + '/' + binId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JBIN_KEY },
+      body: JSON.stringify({ ...rec, modeUI: m })
+    });
+    localModeUI = m;
+    updateModeLabel();
+  } catch(e) {
+    alert('Failed: ' + e.message);
+  }
+}
+
+async function clearChat() {
+  try {
+    const rec = await getRecord();
+    await fetch(JBIN + '/' + binId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JBIN_KEY },
+      body: JSON.stringify({ ...rec, clearTs: Date.now() })
+    });
+    const box = document.getElementById('chatBox');
+    if (box) box.innerHTML = '';
+  } catch(e) {
+    alert('Failed: ' + e.message);
+  }
+}
+
+function updateModeLabel() {
+  const el = document.getElementById('modeLabel');
+  if (el) el.textContent = localModeUI;
 }
 
 async function poll() {
   try {
     const rec = await getRecord();
 
-    // ── handle mode change ──
     if (rec.modeUI !== localModeUI) {
       localModeUI = rec.modeUI;
-      const lbl = document.getElementById('modeLabel');
-      if (lbl) lbl.textContent = localModeUI;
+      updateModeLabel();
     }
 
-    // ── handle clear chat ──
     if (rec.clearTs > lastClearTs) {
       lastClearTs = rec.clearTs;
-      const chat = document.getElementById('chatBox');
-      if (chat) chat.innerHTML = '';
+      const box = document.getElementById('chatBox');
+      if (box) box.innerHTML = '';
     }
 
-    // ── handle new donations ──
     const newDons = rec.donations.filter(d => d.seq > lastSeq);
     if (newDons.length) {
       lastSeq = Math.max(...newDons.map(d => d.seq));
@@ -141,65 +173,13 @@ async function poll() {
 
 // ───── CONTROLLER ─────
 function enterCtrl() {
-  // Build the controller share link (same URL but m=host)
-  const obsUrl = (() => {
-    const u = new URL(location.href);
-    u.searchParams.set('m', 'host');
-    return u.toString();
-  })();
-
   document.body.innerHTML = `
-    <h2>Donation Controller</h2>
-
-    <details style="margin-bottom:12px;">
-      <summary style="cursor:pointer;font-weight:bold;">OBS Link (click to copy)</summary>
-      <textarea id="obsLink" readonly style="width:100%;height:60px;font-size:11px;margin-top:6px;">${obsUrl}</textarea>
-      <button onclick="navigator.clipboard.writeText(document.getElementById('obsLink').value).then(()=>alert('Copied!'))">Copy</button>
-    </details>
-
-    <div style="margin-bottom:12px;">
-      <b>Mode:</b>
-      <button onclick="setMode('chat')">💬 Chat</button>
-      <button onclick="setMode('overlay')">🎬 Overlay</button>
-      &nbsp; <span id="modeCurrent" style="color:gray;font-size:13px;">current: chat</span>
-    </div>
-
-    <div style="margin-bottom:12px;">
-      <button onclick="clearChat()">🧹 Clear Chat</button>
-    </div>
-
-    <hr>
+    <h2>Send Donation</h2>
     <input id="name" placeholder="Name">
     <input id="amt"  type="number" placeholder="Amount">
     <input id="msg"  placeholder="Message (optional)">
-    <button onclick="fire()">Send Donation</button>
+    <button onclick="fire()">Send</button>
   `;
-
-  // Show current mode on load
-  getRecord().then(rec => {
-    const el = document.getElementById('modeCurrent');
-    if (el) el.textContent = 'current: ' + rec.modeUI;
-  });
-}
-
-async function setMode(m) {
-  try {
-    await putRecord({ modeUI: m });
-    const el = document.getElementById('modeCurrent');
-    if (el) el.textContent = 'current: ' + m;
-    alert('Mode set to: ' + m + ' (OBS will update on next poll)');
-  } catch(e) {
-    alert('Failed: ' + e.message);
-  }
-}
-
-async function clearChat() {
-  try {
-    await putRecord({ clearTs: Date.now() });
-    alert('Chat cleared! OBS will update on next poll.');
-  } catch(e) {
-    alert('Failed: ' + e.message);
-  }
 }
 
 async function fire() {
@@ -217,7 +197,7 @@ async function fire() {
     const newSeq = rec.seq + 1;
     payload.seq  = newSeq;
 
-    await fetch(JBIN + '/' + binId, {
+    const res = await fetch(JBIN + '/' + binId, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'X-Master-Key': JBIN_KEY },
       body: JSON.stringify({
@@ -227,7 +207,7 @@ async function fire() {
         donations: [...rec.donations, payload]
       })
     });
-
+    if (!res.ok) throw new Error(await res.text());
     alert('Donation sent!');
   } catch(e) {
     alert('Failed: ' + e.message);
@@ -258,7 +238,6 @@ function showAlert(d) {
 function renderOverlay(d) {
   const box = document.getElementById('overlayBox');
   if (!box) return;
-
   const el = document.createElement('div');
   el.style.cssText = `
     position:fixed;left:50%;bottom:120px;transform:translateX(-50%);
@@ -273,7 +252,6 @@ function renderOverlay(d) {
     <div style="font-size:20px;color:#ddd;margin-top:6px;text-shadow:0 0 8px rgba(0,0,0,0.7);">
       ${d.msg || ''}
     </div>`;
-
   box.appendChild(el);
   setTimeout(() => {
     el.style.opacity = '1';
@@ -291,11 +269,11 @@ function speakDonation(d) {
   const text = d.msg
     ? `${d.name} โดเนท ${d.amt} บาท... ${d.msg}`
     : `${d.name} โดเนท ${d.amt} บาท`;
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang   = 'th-TH';
-  utter.rate   = 1;
-  utter.pitch  = 1;
-  utter.volume = 1;
+  const utter     = new SpeechSynthesisUtterance(text);
+  utter.lang      = 'th-TH';
+  utter.rate      = 1;
+  utter.pitch     = 1;
+  utter.volume    = 1;
   const voices    = speechSynthesis.getVoices();
   const thaiVoice = voices.find(v => v.lang === 'th-TH');
   if (thaiVoice) utter.voice = thaiVoice;
