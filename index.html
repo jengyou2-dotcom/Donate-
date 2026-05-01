@@ -160,24 +160,28 @@ async function fire() {
   }
 }
 // --spech
- function speakDonation(d) {
+function speakDonation(d) {
   const text = d.msg
-    ? `${d.name} donated ${d.cur}${d.amt}. ${d.msg}`
-    : `${d.name} donated ${d.cur}${d.amt}`;
+    ? `${d.name} โดเนท ${d.amt} บาท... ${d.msg}`
+    : `${d.name} โดเนท ${d.amt} บาท`;
 
   const utter = new SpeechSynthesisUtterance(text);
 
-  // voice settings
+  utter.lang = "th-TH";   // 🔥 IMPORTANT
   utter.rate = 1;
-  utter.pitch = 2; // keep it natural (3 is too high)
+  utter.pitch = 1;
   utter.volume = 1;
 
   const voices = speechSynthesis.getVoices();
-  if (voices.length > 0) {
-    utter.voice = voices.find(v => v.lang.includes("en")) || voices[0];
+
+  // try to find Thai voice
+  const thaiVoice = voices.find(v => v.lang === "th-TH");
+
+  if (thaiVoice) {
+    utter.voice = thaiVoice;
   }
 
-  speechSynthesis.cancel(); // prevent overlap
+  speechSynthesis.cancel();
   speechSynthesis.speak(utter);
 }
 // ───── ALERT ─────
