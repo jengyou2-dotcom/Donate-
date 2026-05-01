@@ -4,35 +4,36 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fake Donation System</title>
+<style>
+  body { font-family: sans-serif; padding: 16px; max-width: 480px; margin: 0 auto; }
+  input { width: 100%; padding: 8px; margin-bottom: 8px; box-sizing: border-box; }
+  button { padding: 8px 16px; margin: 4px 4px 4px 0; cursor: pointer; }
+  #chatBox { margin-top: 16px; }
+  #overlayBox { position: fixed; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
+  #statusBar { font-size: 12px; color: gray; margin-bottom: 8px; }
+</style>
 </head>
 <body>
-
-<!-- (UI trimmed for brevity — keep your original HTML UI here unchanged) -->
-
 <script>
-// CONFIG
-const JBIN = 'https://api.jsonbin.io/v3/b';
-const JBIN_KEY = '$2a$10$Kz2mznm8rZktsakdVWFfn.Cl0Hbu3QNEfyBj2YpFElKJ7XMEnV/NS'; // PUT YOUR KEY
+const JBIN     = 'https://api.jsonbin.io/v3/b';
+const JBIN_KEY = '$2a$10$Kz2mznm8rZktsakdVWFfn.Cl0Hbu3QNEfyBj2YpFElKJ7XMEnV/NS';
+const POLL     = 3000;
 
-const POLL = 3000;
+let binId   = null;
+let lastSeq = 0;
+let lastClearTs = 0;
+let localModeUI = "chat"; // host's local view of the mode (for display only)
 
-let binId = null;
-let lastSeq = 0; // 👈 ADD THIS LINE
-let mode, room;
+const SP  = new URLSearchParams(location.search);
+const mode = SP.get('m');
+binId      = SP.get('b');
 
-let modeUI = "chat"; // "chat" or "overlay"
-
-const SP = new URLSearchParams(location.search);
-mode = SP.get('m');
-room = SP.get('r');
-binId = SP.get('b');
-
-// ───── START ─────
+// ───── ENTRY ─────
 if (!mode) {
   document.body.innerHTML = `
     <h2>Fake Donation</h2>
-    <button onclick="hostClick()">Host</button>
-    <button onclick="guestClick()">Join</button>
+    <button onclick="hostClick()">Host (OBS)</button>
+    <button onclick="guestClick()">Controller (Send)</button>
   `;
 } else {
   boot();
@@ -49,16 +50,11 @@ async function boot() {
           'X-Master-Key': JBIN_KEY,
           'X-Bin-Private': 'false'
         },
-        body: JSON.stringify({
-          record: { seq: 0, donations: [] }
-        })
+        body: JSON.stringify({ record: { seq: 0, modeUI: 'chat', clearTs: 0, donations: [] } })
       });
-
       if (!res.ok) throw new Error(await res.text());
-
       const data = await res.json();
       binId = data.metadata.id;
-
       const u = new URL(location.href);
       u.searchParams.set('b', binId);
       history.replaceState(null, '', u.toString());
@@ -67,237 +63,262 @@ async function boot() {
     if (mode === 'host') enterHost();
     else enterCtrl();
 
-  } catch (e) {
+  } catch(e) {
     console.error(e);
     alert("Connection failed: " + e.message);
   }
 }
 
-// ───── SAFE GET RECORD ─────
+// ───── GET RECORD ─────
 async function getRecord() {
   const res = await fetch(JBIN + '/' + binId + '/latest', {
     headers: { 'X-Master-Key': JBIN_KEY },
     cache: 'no-store'
   });
-
   const data = await res.json();
-  const rec = data.record || {};
-
+  const rec  = data.record || {};
   return {
-    seq: typeof rec.seq === "number" ? rec.seq : 0,
-    donations: Array.isArray(rec.donations) ? rec.donations : []
+    seq:       typeof rec.seq       === 'number' ? rec.seq       : 0,
+    modeUI:    typeof rec.modeUI    === 'string'  ? rec.modeUI    : 'chat',
+    clearTs:   typeof rec.clearTs   === 'number'  ? rec.clearTs   : 0,
+    donations: Array.isArray(rec.donations)       ? rec.donations : []
   };
+}
+
+// ───── PUT RECORD (partial merge) ─────
+async function putRecord(patch) {
+  const rec = await getRecord();
+  const merged = { ...rec, ...patch };
+  const res = await fetch(JBIN + '/' + binId, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Master-Key': JBIN_KEY },
+    body: JSON.stringify(merged)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return merged;
 }
 
 // ───── HOST ─────
 function enterHost() {
   document.body.innerHTML = `
     <h2>OBS Overlay Running...</h2>
-    <button onclick="toggleMode()">🔄 Switch Mode</button>
-    <button onclick="enableAudio()">🔊 Enable Sound</button>
-    <button onclick="clearChat()">🧹 Clear Chat</button>
-
+    <div id="statusBar">Mode: <b id="modeLabel">chat</b></div>
     <div id="chatBox"></div>
     <div id="overlayBox"></div>
   `;
-
   setInterval(poll, POLL);
 }
-function clearChat() {
-  const chat = document.getElementById("chatBox");
-  if (chat) chat.innerHTML = "";
-}
-
-function toggleMode() {
-  modeUI = modeUI === "chat" ? "overlay" : "chat";
-  alert("Mode: " + modeUI);
-}  
 
 async function poll() {
   try {
     const rec = await getRecord();
 
-    const newDons = rec.donations.filter(d => d.seq > lastSeq);
+    // ── handle mode change ──
+    if (rec.modeUI !== localModeUI) {
+      localModeUI = rec.modeUI;
+      const lbl = document.getElementById('modeLabel');
+      if (lbl) lbl.textContent = localModeUI;
+    }
 
+    // ── handle clear chat ──
+    if (rec.clearTs > lastClearTs) {
+      lastClearTs = rec.clearTs;
+      const chat = document.getElementById('chatBox');
+      if (chat) chat.innerHTML = '';
+    }
+
+    // ── handle new donations ──
+    const newDons = rec.donations.filter(d => d.seq > lastSeq);
     if (newDons.length) {
       lastSeq = Math.max(...newDons.map(d => d.seq));
       newDons.forEach(showAlert);
     }
 
-  } catch (e) {
-    console.error("Poll error:", e);
+  } catch(e) {
+    console.error('Poll error:', e);
   }
 }
 
 // ───── CONTROLLER ─────
 function enterCtrl() {
+  // Build the controller share link (same URL but m=host)
+  const obsUrl = (() => {
+    const u = new URL(location.href);
+    u.searchParams.set('m', 'host');
+    return u.toString();
+  })();
+
   document.body.innerHTML = `
-  <h2>Send Donation</h2>
-  <input id="name" placeholder="Name"><br><br>
-  <input id="amt" type="number" placeholder="Amount"><br><br>
-  <input id="msg" placeholder="Message (optional)"><br><br>
-  <button onclick="fire()">Send</button>
-`;
+    <h2>Donation Controller</h2>
+
+    <details style="margin-bottom:12px;">
+      <summary style="cursor:pointer;font-weight:bold;">OBS Link (click to copy)</summary>
+      <textarea id="obsLink" readonly style="width:100%;height:60px;font-size:11px;margin-top:6px;">${obsUrl}</textarea>
+      <button onclick="navigator.clipboard.writeText(document.getElementById('obsLink').value).then(()=>alert('Copied!'))">Copy</button>
+    </details>
+
+    <div style="margin-bottom:12px;">
+      <b>Mode:</b>
+      <button onclick="setMode('chat')">💬 Chat</button>
+      <button onclick="setMode('overlay')">🎬 Overlay</button>
+      &nbsp; <span id="modeCurrent" style="color:gray;font-size:13px;">current: chat</span>
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <button onclick="clearChat()">🧹 Clear Chat</button>
+    </div>
+
+    <hr>
+    <input id="name" placeholder="Name">
+    <input id="amt"  type="number" placeholder="Amount">
+    <input id="msg"  placeholder="Message (optional)">
+    <button onclick="fire()">Send Donation</button>
+  `;
+
+  // Show current mode on load
+  getRecord().then(rec => {
+    const el = document.getElementById('modeCurrent');
+    if (el) el.textContent = 'current: ' + rec.modeUI;
+  });
+}
+
+async function setMode(m) {
+  try {
+    await putRecord({ modeUI: m });
+    const el = document.getElementById('modeCurrent');
+    if (el) el.textContent = 'current: ' + m;
+    alert('Mode set to: ' + m + ' (OBS will update on next poll)');
+  } catch(e) {
+    alert('Failed: ' + e.message);
+  }
+}
+
+async function clearChat() {
+  try {
+    await putRecord({ clearTs: Date.now() });
+    alert('Chat cleared! OBS will update on next poll.');
+  } catch(e) {
+    alert('Failed: ' + e.message);
+  }
 }
 
 async function fire() {
- const payload = {
-  name: document.getElementById('name').value || 'Anon',
-  amt: parseFloat(document.getElementById('amt').value) || 5,
-  msg: document.getElementById('msg').value || '',
-  cur: '$',
-  color: '#1D9E75',
-  ts: Date.now()
-};
+  const payload = {
+    name:  document.getElementById('name').value || 'Anon',
+    amt:   parseFloat(document.getElementById('amt').value) || 5,
+    msg:   document.getElementById('msg').value || '',
+    cur:   '$',
+    color: '#1D9E75',
+    ts:    Date.now()
+  };
 
   try {
-    const rec = await getRecord();
-
+    const rec    = await getRecord();
     const newSeq = rec.seq + 1;
-    payload.seq = newSeq;
+    payload.seq  = newSeq;
 
-    const newDons = [...rec.donations, payload];
-
-    const res = await fetch(JBIN + '/' + binId, {
+    await fetch(JBIN + '/' + binId, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Master-Key': JBIN_KEY
-      },
-     body: JSON.stringify({
-  seq: newSeq,
-  donations: newDons
-})
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JBIN_KEY },
+      body: JSON.stringify({
+        seq:       newSeq,
+        modeUI:    rec.modeUI,
+        clearTs:   rec.clearTs,
+        donations: [...rec.donations, payload]
+      })
     });
 
-    if (!res.ok) throw new Error(await res.text());
-
-    alert("Donation sent!");
-
-  } catch (e) {
-    console.error(e);
-    alert("Failed: " + e.message);
+    alert('Donation sent!');
+  } catch(e) {
+    alert('Failed: ' + e.message);
   }
 }
-// --spech
-function speakDonation(d) {
-  const text = d.msg
-    ? `${d.name} โดเนท ${d.amt} บาท... ${d.msg}`
-    : `${d.name} โดเนท ${d.amt} บาท`;
 
-  const utter = new SpeechSynthesisUtterance(text);
-
-  utter.lang = "th-TH";   // 🔥 IMPORTANT
-  utter.rate = 1;
-  utter.pitch = 1;
-  utter.volume = 1;
-
-  const voices = speechSynthesis.getVoices();
-
-  // try to find Thai voice
-  const thaiVoice = voices.find(v => v.lang === "th-TH");
-
-  if (thaiVoice) {
-    utter.voice = thaiVoice;
-  }
-
-  speechSynthesis.cancel();
-  speechSynthesis.speak(utter);
-}
 // ───── ALERT ─────
 function showAlert(d) {
-  if (modeUI === "chat") {
+  if (localModeUI === 'chat') {
     const el = document.createElement('div');
-
     el.innerHTML = `
       <div style="margin-bottom:10px;">
         <b>${d.name}</b> donated ${d.cur}${d.amt}<br>
-        <span style="color:gray;">${d.msg || ""}</span>
-      </div>
-    `;
-
-    document.getElementById("chatBox").prepend(el);
+        <span style="color:gray;">${d.msg || ''}</span>
+      </div>`;
+    const box = document.getElementById('chatBox');
+    if (box) box.prepend(el);
   }
 
-  if (modeUI === "overlay") {
+  if (localModeUI === 'overlay') {
     renderOverlay(d);
   }
 
   speakDonation(d);
 }
-//-- overlay
+
+// ───── OVERLAY ─────
 function renderOverlay(d) {
-  const box = document.getElementById("overlayBox");
+  const box = document.getElementById('overlayBox');
+  if (!box) return;
 
-  const el = document.createElement("div");
-
-  // container (centered + transparent)
-  el.style.position = "fixed";
-  el.style.left = "50%";
-  el.style.bottom = "120px";
-  el.style.transform = "translateX(-50%)";
-  el.style.textAlign = "center";
-  el.style.opacity = "0";
-  el.style.transition = "all 0.5s ease";
-  el.style.pointerEvents = "none"; // OBS friendly
-
-  // 🔥 content
+  const el = document.createElement('div');
+  el.style.cssText = `
+    position:fixed;left:50%;bottom:120px;transform:translateX(-50%);
+    text-align:center;opacity:0;transition:all 0.5s ease;pointer-events:none;
+  `;
   el.innerHTML = `
-    <img src="gifs/donate.gif?${Date.now()}" 
-         style="width:220px; display:block; margin:0 auto 10px auto;">
-    
-    <div style="
-      font-size:32px;
-      font-weight:800;
-      color:white;
-      text-shadow: 0 0 10px rgba(0,0,0,0.8);
-    ">
+    <img src="gifs/donate.gif?${Date.now()}"
+         style="width:220px;display:block;margin:0 auto 10px auto;">
+    <div style="font-size:32px;font-weight:800;color:white;text-shadow:0 0 10px rgba(0,0,0,0.8);">
       ${d.name} donated ${d.cur}${d.amt}
     </div>
-
-    <div style="
-      font-size:20px;
-      color:#ddd;
-      margin-top:6px;
-      text-shadow: 0 0 8px rgba(0,0,0,0.7);
-    ">
-      ${d.msg || ""}
-    </div>
-  `;
+    <div style="font-size:20px;color:#ddd;margin-top:6px;text-shadow:0 0 8px rgba(0,0,0,0.7);">
+      ${d.msg || ''}
+    </div>`;
 
   box.appendChild(el);
-
-  // 🎬 animate in
   setTimeout(() => {
-    el.style.opacity = "1";
-    el.style.transform = "translateX(-50%) translateY(-10px)";
+    el.style.opacity = '1';
+    el.style.transform = 'translateX(-50%) translateY(-10px)';
   }, 50);
-
-  // 🌫 fade out
   setTimeout(() => {
-    el.style.opacity = "0";
-    el.style.transform = "translateX(-50%) translateY(20px)";
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(-50%) translateY(20px)';
     setTimeout(() => el.remove(), 500);
   }, 6000);
 }
+
+// ───── TTS ─────
+function speakDonation(d) {
+  const text = d.msg
+    ? `${d.name} โดเนท ${d.amt} บาท... ${d.msg}`
+    : `${d.name} โดเนท ${d.amt} บาท`;
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang   = 'th-TH';
+  utter.rate   = 1;
+  utter.pitch  = 1;
+  utter.volume = 1;
+  const voices    = speechSynthesis.getVoices();
+  const thaiVoice = voices.find(v => v.lang === 'th-TH');
+  if (thaiVoice) utter.voice = thaiVoice;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(utter);
+}
+
 // ───── NAV ─────
 function hostClick() {
-  const r = Math.random().toString(36).slice(2,8);
   const u = new URL(location.href);
-  u.searchParams.set('m','host');
-  u.searchParams.set('r',r);
-  u.searchParams.delete('b'); // 🔥 force new clean bin
+  u.searchParams.set('m', 'host');
+  u.searchParams.set('r', Math.random().toString(36).slice(2,8));
+  u.searchParams.delete('b');
   location.href = u.toString();
 }
 
 function guestClick() {
-  const raw = prompt('Paste controller link:');
+  const raw = prompt('Paste the Host link:');
   if (!raw) return;
   const u = new URL(raw);
-  u.searchParams.set('m','ctrl');
+  u.searchParams.set('m', 'ctrl');
   location.href = u.toString();
 }
 </script>
-  
 </body>
 </html>
