@@ -161,25 +161,14 @@ async function fire() {
 }
 
 // ----- Speech //
-  function speakDonation(d) {
-  const msg = d.msg ? `Message: ${d.msg}` : "";
+ function speakDonation(d) {
+  const text = `${d.name} โดเนท ${d.amt} บาท ${d.msg || ""}`;
 
-  const text = `${d.name} donated ${d.cur}${d.amt}. ${msg}`;
+  const url = "https://translate.google.com/translate_tts?ie=UTF-8&tl=th&client=tw-ob&q=" 
+              + encodeURIComponent(text);
 
-  const utter = new SpeechSynthesisUtterance(text);
-
-  // voice settings
-  utter.rate = 1;      // speed (0.5 - 2)
-  utter.pitch = 1;     // tone (0 - 2)
-  utter.volume = 1;    // volume (0 - 1)
-
-  // optional: pick voice (depends on browser)
-  const voices = speechSynthesis.getVoices();
-  if (voices.length > 0) {
-    utter.voice = voices.find(v => v.lang.includes("en")) || voices[0];
-  }
-
-  speechSynthesis.speak(utter);
+  const audio = new Audio(url);
+  audio.play();
 }
 
 // ───── ALERT ─────
