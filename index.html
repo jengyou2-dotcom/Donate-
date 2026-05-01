@@ -20,6 +20,8 @@ let binId = null;
 let lastSeq = 0; // 👈 ADD THIS LINE
 let mode, room;
 
+let modeUI = "chat"; // "chat" or "overlay"
+
 const SP = new URLSearchParams(location.search);
 mode = SP.get('m');
 room = SP.get('r');
@@ -89,9 +91,21 @@ async function getRecord() {
 
 // ───── HOST ─────
 function enterHost() {
-  document.body.innerHTML = "<h2>OBS Overlay Running...</h2>";
+  document.body.innerHTML = `
+    <h2>OBS Overlay Running...</h2>
+    <button onclick="toggleMode()">🔄 Switch Mode</button>
+    <button onclick="enableAudio()">🔊 Enable Sound</button>
+    <div id="chatBox"></div>
+    <div id="overlayBox"></div>
+  `;
+
   setInterval(poll, POLL);
 }
+
+function toggleMode() {
+  modeUI = modeUI === "chat" ? "overlay" : "chat";
+  alert("Mode: " + modeUI);
+}  
 
 async function poll() {
   try {
@@ -186,21 +200,60 @@ function speakDonation(d) {
 }
 // ───── ALERT ─────
 function showAlert(d) {
-  const el = document.createElement('div');
+  if (modeUI === "chat") {
+    const el = document.createElement('div');
+
+    el.innerHTML = `
+      <div style="margin-bottom:10px;">
+        <b>${d.name}</b> donated ${d.cur}${d.amt}<br>
+        <span style="color:gray;">${d.msg || ""}</span>
+      </div>
+    `;
+
+    document.getElementById("chatBox").prepend(el);
+  }
+
+  if (modeUI === "overlay") {
+    showOverlay(d);
+  }
+
+  speakDonation(d);
+}
+//-- overlay
+
+function showOverlay(d) {
+  const box = document.getElementById("overlayBox");
+
+  const el = document.createElement("div");
+  el.style.position = "fixed";
+  el.style.bottom = "100px";
+  el.style.left = "50px";
+  el.style.background = "rgba(0,0,0,0.8)";
+  el.style.color = "white";
+  el.style.padding = "20px";
+  el.style.borderRadius = "10px";
+  el.style.fontSize = "20px";
+  el.style.opacity = "0";
+  el.style.transition = "opacity 0.5s";
 
   el.innerHTML = `
-    <div style="font-size:20px;font-weight:bold;">
-      ${d.name} donated ${d.cur}${d.amt}
-    </div>
-    <div style="font-size:14px;color:gray;">
-      ${d.msg || ""}
-    </div>
+    <img src="gifs/donate.gif" width="80">
+    <b>${d.name}</b> donated ${d.cur}${d.amt}<br>
+    ${d.msg || ""}
   `;
 
-  document.body.prepend(el);
+  box.appendChild(el);
 
-  // 🔥 ADD THIS LINE
-  speakDonation(d);
+  // fade in
+  setTimeout(() => {
+    el.style.opacity = "1";
+  }, 50);
+
+  // fade out
+  setTimeout(() => {
+    el.style.opacity = "0";
+    setTimeout(() => el.remove(), 500);
+  }, 5000);
 }
 
 // ───── NAV ─────
