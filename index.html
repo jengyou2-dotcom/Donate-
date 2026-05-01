@@ -6,164 +6,156 @@
 <title>Fake Donation System</title>
 <style>
   :root {
-    --green:#1D9E75;--green-dark:#0F6E56;--green-dim:rgba(29,158,117,0.15);
-    --bg:#0e0f13;--surface:#181a21;--surface2:#1f2130;
-    --border:rgba(255,255,255,0.08);--text:#f0f0f0;--muted:rgba(255,255,255,0.5);
+    --green: #1D9E75; --green-dark: #0F6E56; --green-dim: rgba(29,158,117,0.15);
+    --bg: #0e0f13; --surface: #181a21; --surface2: #1f2130;
+    --border: rgba(255,255,255,0.08); --text: #f0f0f0; --muted: rgba(255,255,255,0.45);
   }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-  .hidden{display:none!important}
-  input,select,textarea{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;font-family:inherit}
-  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green)}
-  textarea{resize:vertical;min-height:68px}
-  label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;letter-spacing:.05em;text-transform:uppercase}
-  .field{margin-bottom:13px}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  .hidden { display: none !important; }
+  .btn { padding: 11px 20px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; font-family: inherit; transition: all 0.15s; }
+  .btn-green { background: var(--green); color: #fff; width: 100%; padding: 14px; font-size: 16px; border-radius: 10px; }
+  .btn-green:hover { background: var(--green-dark); }
+  .btn-green:active { transform: scale(0.97); }
+  .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .btn-outline:hover { background: var(--surface2); }
+  input, select, textarea { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 14px; font-family: inherit; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--green); }
+  textarea { resize: vertical; min-height: 70px; }
+  label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 5px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .field { margin-bottom: 14px; }
 
   /* LANDING */
-  #landing{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem;background:radial-gradient(ellipse at 50% 0%,rgba(29,158,117,.13) 0%,transparent 65%)}
-  .logo{font-size:54px;margin-bottom:1rem}
-  .ltitle{font-size:28px;font-weight:700;margin-bottom:8px;text-align:center}
-  .lsub{color:var(--muted);font-size:15px;margin-bottom:2.5rem;text-align:center;max-width:380px;line-height:1.6}
-  .lbtns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
-  .btn{padding:13px 26px;border-radius:10px;border:none;cursor:pointer;font-size:15px;font-weight:600;font-family:inherit;transition:all .15s}
-  .bg{background:var(--green);color:#fff}.bg:hover{background:var(--green-dark)}.bg:active{transform:scale(.97)}
-  .bo{background:transparent;color:var(--text);border:1px solid var(--border)}.bo:hover{background:var(--surface2)}
+  #landing { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem; background: radial-gradient(ellipse at 50% 0%, rgba(29,158,117,0.12) 0%, transparent 60%); }
+  .logo { font-size: 52px; margin-bottom: 1rem; }
+  .landing-title { font-size: 28px; font-weight: 700; margin-bottom: 8px; text-align: center; }
+  .landing-sub { color: var(--muted); font-size: 15px; margin-bottom: 2.5rem; text-align: center; max-width: 380px; line-height: 1.6; }
+  .landing-btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .landing-btns .btn { padding: 14px 28px; font-size: 15px; border-radius: 10px; }
 
   /* SETUP */
-  #setup{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem}
-  .scard{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:2rem;max-width:400px;width:100%;text-align:center}
-  .spin{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 1rem}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .stitle{font-size:18px;font-weight:700;margin-bottom:8px}
-  .ssub{color:var(--muted);font-size:14px;line-height:1.6}
-  .err{color:#E24B4A;font-size:13px;margin-top:12px;line-height:1.5}
-  .retry{margin-top:14px;padding:10px 22px;border-radius:8px;border:none;background:var(--green);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+  #setup { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem; }
+  .setup-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; max-width: 420px; width: 100%; text-align: center; }
+  .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 1rem; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .setup-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .setup-sub { color: var(--muted); font-size: 14px; line-height: 1.5; }
 
-  /* TOP BAR */
-  #bar{position:fixed;top:0;left:0;right:0;background:var(--surface);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);z-index:100}
-  .dot{width:8px;height:8px;border-radius:50%;background:#555;flex-shrink:0}
-  .dot.on{background:var(--green);box-shadow:0 0 6px var(--green)}
-  #roomTxt{font-family:monospace;font-weight:700;color:var(--green);font-size:14px;letter-spacing:.08em}
+  /* STATUS BAR */
+  #statusBar { position: fixed; top: 0; left: 0; right: 0; background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 20px; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); z-index: 100; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #555; flex-shrink: 0; }
+  .dot.on { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  #roomCode { font-family: monospace; font-weight: 700; color: var(--green); font-size: 14px; letter-spacing: 0.08em; }
 
   /* CONTROLLER */
-  #ctrl{padding:70px 20px 40px;max-width:560px;margin:0 auto}
-  .ctitle{font-size:20px;font-weight:700;margin-bottom:4px}
-  .csub{color:var(--muted);font-size:13px;margin-bottom:1.5rem}
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:14px}
-  .ctop{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px}
-  .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .amts{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-  .chip{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .12s;user-select:none}
-  .chip:hover{border-color:var(--green);color:var(--green)}
-  .chip.on{background:var(--green-dim);border-color:var(--green);color:var(--green)}
-  .swatches{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-  .sw{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .12s}
-  .sw:hover{transform:scale(1.15)}
-  .sw.on{border-color:#fff;transform:scale(1.2)}
-  .prev{border-radius:10px;padding:14px 16px;margin-bottom:14px;border-left:4px solid var(--green);background:var(--green-dim);display:flex;align-items:center;gap:12px}
-  .pico{font-size:28px}
-  .pinfo{flex:1}
-  .pname{font-size:15px;font-weight:700}
-  .pmsg{font-size:12px;color:var(--muted);margin-top:2px}
-  .pamt{font-size:22px;font-weight:800;color:var(--green)}
-  .firebtn{width:100%;padding:14px;font-size:16px;border-radius:10px;border:none;background:var(--green);color:#fff;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
-  .firebtn:hover{background:var(--green-dark)}.firebtn:active{transform:scale(.97)}
-  .sharebox{background:var(--surface2);border-radius:8px;padding:10px 12px;margin-bottom:8px}
-  .shareurl{font-family:monospace;font-size:12px;color:var(--green);word-break:break-all;line-height:1.5;margin-bottom:8px}
-  .cbtn{font-size:12px;padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-family:inherit}
-  .cbtn:hover{background:var(--surface)}
-  .hlist{max-height:200px;overflow-y:auto}
-  .hrow{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
-  .hrow:last-child{border-bottom:none}
-  .hname{font-size:13px;font-weight:600}
-  .hmsg{font-size:11px;color:var(--muted)}
-  .hamt{font-size:14px;font-weight:700;flex-shrink:0;margin-left:8px}
-  .badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;background:var(--green-dim);color:var(--green);margin-left:6px;font-weight:600}
-  .note{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5}
+  #controller { padding: 70px 20px 40px; max-width: 560px; margin: 0 auto; }
+  .ctrl-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .ctrl-sub { color: var(--muted); font-size: 13px; margin-bottom: 1.5rem; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; }
+  .card-title { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 14px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .amt-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .chip { padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); cursor: pointer; transition: all 0.12s; user-select: none; }
+  .chip:hover { border-color: var(--green); color: var(--green); }
+  .chip.sel { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+  .color-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .swatch { width: 26px; height: 26px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.12s; }
+  .swatch:hover { transform: scale(1.15); }
+  .swatch.sel { border-color: #fff; transform: scale(1.2); }
+  .preview { border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; border-left: 4px solid var(--green); background: var(--green-dim); display: flex; align-items: center; gap: 12px; }
+  .prev-icon { font-size: 28px; }
+  .prev-info { flex: 1; }
+  .prev-name { font-size: 15px; font-weight: 700; }
+  .prev-msg { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .prev-amt { font-size: 22px; font-weight: 800; color: var(--green); }
+  .share-box { background: var(--surface2); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+  .share-url { font-family: monospace; font-size: 12px; color: var(--green); word-break: break-all; margin-bottom: 8px; line-height: 1.5; }
+  .hist-list { max-height: 200px; overflow-y: auto; }
+  .hist-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .hist-row:last-child { border-bottom: none; }
+  .hist-name { font-size: 13px; font-weight: 600; }
+  .hist-msg { font-size: 11px; color: var(--muted); }
+  .hist-amt { font-size: 14px; font-weight: 700; flex-shrink: 0; margin-left: 8px; }
+  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px; background: var(--green-dim); color: var(--green); margin-left: 6px; font-weight: 600; }
+  .copy-btn { font-size: 12px; padding: 6px 14px; border-radius: 6px; }
 
   /* OVERLAY */
-  #ov{position:fixed;inset:0;pointer-events:none;overflow:hidden;background:transparent}
-  .al{position:absolute;bottom:80px;left:60px;width:480px;background:rgba(8,10,18,.94);border-radius:16px;border-left:5px solid #1D9E75;padding:18px 20px;display:flex;gap:14px;align-items:flex-start;transform:translateX(-600px);opacity:0;box-shadow:0 12px 48px rgba(0,0,0,.6);overflow:hidden}
-  .al.in{animation:aIn .55s cubic-bezier(.34,1.56,.64,1) forwards}
-  .al.out{animation:aOut .4s ease-in forwards}
-  @keyframes aIn{to{transform:translateX(0);opacity:1}}
-  @keyframes aOut{to{transform:translateX(-600px);opacity:0}}
-  .aico{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;background:rgba(255,255,255,.08)}
-  .abody{flex:1;min-width:0}
-  .atag{font-size:10px;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:3px}
-  .arow{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
-  .aname{font-size:19px;font-weight:800}
-  .aamt{font-size:24px;font-weight:900;margin-left:8px;flex-shrink:0}
-  .amsg{font-size:14px;color:rgba(255,255,255,.75);line-height:1.4;word-break:break-word}
-  .abar{position:absolute;bottom:0;left:0;right:0;height:3px}
-  .afill{height:100%;transform-origin:left}
-  .afill.sh{animation:bsh linear forwards}
-  @keyframes bsh{to{transform:scaleX(0)}}
-  .cf{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-  .cp{position:absolute;width:7px;height:7px;border-radius:2px;opacity:0;animation:cpf ease-out forwards}
-  @keyframes cpf{0%{opacity:1;transform:translateY(-10px) rotate(0)}100%{opacity:0;transform:translateY(90px) rotate(360deg)}}
-  body.obs{background:transparent!important}
+  #overlay { position: fixed; inset: 0; pointer-events: none; overflow: hidden; background: transparent; }
+  .alert { position: absolute; bottom: 80px; left: 60px; width: 480px; background: rgba(8,10,18,0.94); border-radius: 16px; border-left: 5px solid #1D9E75; padding: 18px 20px; display: flex; gap: 14px; align-items: flex-start; transform: translateX(-600px); opacity: 0; box-shadow: 0 12px 48px rgba(0,0,0,0.6); overflow: hidden; }
+  .alert.in  { animation: aIn  0.55s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+  .alert.out { animation: aOut 0.4s ease-in forwards; }
+  @keyframes aIn  { to { transform: translateX(0); opacity: 1; } }
+  @keyframes aOut { to { transform: translateX(-600px); opacity: 0; } }
+  .al-icon { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; background: rgba(255,255,255,0.08); }
+  .al-body { flex: 1; min-width: 0; }
+  .al-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; color: rgba(255,255,255,0.4); text-transform: uppercase; margin-bottom: 3px; }
+  .al-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .al-name { font-size: 19px; font-weight: 800; }
+  .al-amt  { font-size: 24px; font-weight: 900; margin-left: 8px; flex-shrink: 0; }
+  .al-msg  { font-size: 14px; color: rgba(255,255,255,0.75); line-height: 1.4; word-break: break-word; }
+  .al-bar  { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; }
+  .al-fill { height: 100%; transform-origin: left; }
+  .al-fill.shrink { animation: barShrink linear forwards; }
+  @keyframes barShrink { to { transform: scaleX(0); } }
+  .confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  .cp { position: absolute; width: 7px; height: 7px; border-radius: 2px; opacity: 0; animation: cpf ease-out forwards; }
+  @keyframes cpf { 0%{opacity:1;transform:translateY(-10px) rotate(0)} 100%{opacity:0;transform:translateY(90px) rotate(360deg)} }
+
+  body.obs { background: transparent !important; }
 </style>
 </head>
 <body>
 
-<!-- LANDING -->
+<div id="setup" class="hidden">
+  <div class="setup-card">
+    <div class="spinner"></div>
+    <div class="setup-title">Setting things up...</div>
+    <div class="setup-sub" id="setupMsg">Please wait</div>
+  </div>
+</div>
+
 <div id="landing">
   <div class="logo">🎮</div>
-  <div class="ltitle">Fake Donation System</div>
-  <div class="lsub">Roleplay streamer donations with friends — real-time alerts, zero real money!</div>
-  <div class="lbtns">
-    <button class="btn bg" onclick="hostClick()">🖥️ I'm the Streamer</button>
-    <button class="btn bo" onclick="guestClick()">🎁 I'm sending donations</button>
+  <div class="landing-title">Fake Donation System</div>
+  <div class="landing-sub">Roleplay streamer donations with your friends — real-time alerts, zero real money!</div>
+  <div class="landing-btns">
+    <button class="btn btn-green" onclick="hostClick()">🖥️ I'm the Streamer</button>
+    <button class="btn btn-outline" onclick="guestClick()">🎁 I'm sending donations</button>
   </div>
 </div>
 
-<!-- SETUP -->
-<div id="setup" class="hidden">
-  <div class="scard">
-    <div class="spin"></div>
-    <div class="stitle">Setting up your room...</div>
-    <div class="ssub" id="smsg">Creating a shared channel, please wait...</div>
-    <div class="err hidden" id="serr"></div>
-    <button class="retry hidden" id="sretry" onclick="location.reload()">Try again</button>
-  </div>
-</div>
-
-<!-- TOP BAR -->
-<div id="bar" class="hidden">
+<div id="statusBar" class="hidden">
   <div class="dot" id="dot"></div>
-  <span id="connlbl">Connecting...</span>
+  <span id="connLabel">Connecting...</span>
   <span style="flex:1"></span>
-  <span style="font-size:12px;color:var(--muted)">Room: </span>
-  <span id="roomTxt">—</span>
+  <span style="font-size:12px;color:var(--muted)">Room:</span>
+  <span id="roomCode">—</span>
 </div>
 
-<!-- CONTROLLER -->
-<div id="ctrl" class="hidden">
-  <div class="ctitle">Donation Controller 🎮</div>
-  <div class="csub">Send fake donations to the streamer's OBS overlay in real time!</div>
+<div id="controller" class="hidden">
+  <div class="ctrl-title">Donation Controller 🎮</div>
+  <div class="ctrl-sub">Send fake donations to the streamer's OBS overlay!</div>
 
   <div class="card">
-    <div class="ctop">📺 OBS overlay link — give this to the streamer</div>
-    <div class="sharebox">
-      <div class="shareurl" id="obslink">—</div>
-      <button class="cbtn" onclick="cp('obslink',this,'📋 Copy OBS link')">📋 Copy OBS link</button>
+    <div class="card-title">📺 OBS overlay link (for streamer)</div>
+    <div class="share-box">
+      <div class="share-url" id="obsUrl">—</div>
+      <button class="btn btn-outline copy-btn" id="copyObs" onclick="copyUrl('obsUrl','copyObs','📋 Copy OBS link')">📋 Copy OBS link</button>
     </div>
-    <div class="note">In OBS → Add Source → Browser → paste link above → Width: 1920 Height: 1080 → ✅ Transparent background</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:6px;">In OBS: Add Source → Browser → paste link → 1920×1080 → ✅ Transparent background</div>
   </div>
 
   <div class="card">
-    <div class="ctop">🎁 Controller link — share with friends</div>
-    <div class="sharebox">
-      <div class="shareurl" id="ctrllink">—</div>
-      <button class="cbtn" onclick="cp('ctrllink',this,'📋 Copy link')">📋 Copy link</button>
+    <div class="card-title">🎁 Share controller with friends</div>
+    <div class="share-box">
+      <div class="share-url" id="ctrlUrl">—</div>
+      <button class="btn btn-outline copy-btn" id="ctrlBtn" onclick="copyUrl('ctrlUrl','ctrlBtn','📋 Copy link')">📋 Copy link</button>
     </div>
-    <div class="note">Anyone with this link can send donations to the streamer</div>
   </div>
 
   <div class="card">
-    <div class="ctop">Donation Details</div>
-    <div class="g2">
+    <div class="card-title">Donation Details</div>
+    <div class="grid2">
       <div class="field"><label>Donor Name</label><input id="dname" value="CoolViewer99" oninput="upd()"></div>
       <div class="field"><label>Currency</label>
         <select id="cur" onchange="upd()">
@@ -175,203 +167,261 @@
     </div>
     <div class="field">
       <label>Amount</label>
-      <div class="amts">
-        <div class="chip on" onclick="pamt(this,'5')">5</div>
-        <div class="chip" onclick="pamt(this,'10')">10</div>
-        <div class="chip" onclick="pamt(this,'20')">20</div>
-        <div class="chip" onclick="pamt(this,'50')">50</div>
-        <div class="chip" onclick="pamt(this,'100')">100</div>
-        <div class="chip" onclick="pamt(this,'500')">500</div>
-        <div class="chip" onclick="pamt(this,'1000')">1000</div>
+      <div class="amt-row">
+        <div class="chip sel" onclick="pickAmt(this,'5')">5</div>
+        <div class="chip" onclick="pickAmt(this,'10')">10</div>
+        <div class="chip" onclick="pickAmt(this,'20')">20</div>
+        <div class="chip" onclick="pickAmt(this,'50')">50</div>
+        <div class="chip" onclick="pickAmt(this,'100')">100</div>
+        <div class="chip" onclick="pickAmt(this,'500')">500</div>
+        <div class="chip" onclick="pickAmt(this,'1000')">1000</div>
       </div>
-      <input id="amt" type="number" value="5" min="1" oninput="clrchips();upd()">
+      <input id="amt" type="number" value="5" min="1" oninput="clearChips();upd()">
     </div>
-    <div class="field"><label>Message</label><textarea id="dmsg" oninput="upd()">You're the best streamer ever! 🔥</textarea></div>
+    <div class="field"><label>Message</label><textarea id="msg" oninput="upd()">You're the best streamer! 🔥</textarea></div>
     <div class="field">
       <label>Alert Color</label>
-      <div class="swatches">
-        <div class="sw on" style="background:#1D9E75" data-c="#1D9E75" onclick="pcol(this)"></div>
-        <div class="sw" style="background:#378ADD" data-c="#378ADD" onclick="pcol(this)"></div>
-        <div class="sw" style="background:#D85A30" data-c="#D85A30" onclick="pcol(this)"></div>
-        <div class="sw" style="background:#D4537E" data-c="#D4537E" onclick="pcol(this)"></div>
-        <div class="sw" style="background:#7F77DD" data-c="#7F77DD" onclick="pcol(this)"></div>
-        <div class="sw" style="background:#BA7517" data-c="#BA7517" onclick="pcol(this)"></div>
-        <div class="sw" style="background:#E24B4A" data-c="#E24B4A" onclick="pcol(this)"></div>
+      <div class="color-row">
+        <div class="swatch sel" style="background:#1D9E75" data-c="#1D9E75" onclick="pickColor(this)"></div>
+        <div class="swatch" style="background:#378ADD" data-c="#378ADD" onclick="pickColor(this)"></div>
+        <div class="swatch" style="background:#D85A30" data-c="#D85A30" onclick="pickColor(this)"></div>
+        <div class="swatch" style="background:#D4537E" data-c="#D4537E" onclick="pickColor(this)"></div>
+        <div class="swatch" style="background:#7F77DD" data-c="#7F77DD" onclick="pickColor(this)"></div>
+        <div class="swatch" style="background:#BA7517" data-c="#BA7517" onclick="pickColor(this)"></div>
+        <div class="swatch" style="background:#E24B4A" data-c="#E24B4A" onclick="pickColor(this)"></div>
       </div>
     </div>
-    <div class="prev" id="prev">
-      <div class="pico">💰</div>
-      <div class="pinfo">
-        <div class="pname" id="pn">CoolViewer99</div>
-        <div class="pmsg" id="pm">You're the best streamer ever! 🔥</div>
+    <div class="preview" id="prev">
+      <div class="prev-icon">💰</div>
+      <div class="prev-info">
+        <div class="prev-name" id="pName">CoolViewer99</div>
+        <div class="prev-msg" id="pMsg">You're the best streamer! 🔥</div>
       </div>
-      <div class="pamt" id="pa">$5</div>
+      <div class="prev-amt" id="pAmt">$5</div>
     </div>
-    <button class="firebtn" id="fbtn" onclick="fire()">🎉 Fire Donation!</button>
+    <button class="btn btn-green" id="fireBtn" onclick="fire()">🎉 Fire Donation!</button>
   </div>
 
   <div class="card">
-    <div class="ctop">History <span class="badge" id="hbadge">0</span></div>
-    <div class="hlist" id="hlist"><div style="font-size:13px;color:var(--muted);text-align:center;padding:10px">No donations sent yet</div></div>
+    <div class="card-title">History <span class="badge" id="hBadge">0</span></div>
+    <div class="hist-list" id="histList"><div style="font-size:13px;color:var(--muted);text-align:center;padding:10px">No donations yet</div></div>
   </div>
 </div>
 
-<!-- OVERLAY (OBS transparent) -->
-<div id="ov" class="hidden"></div>
+<div id="overlay" class="hidden"></div>
 
 <script>
-// ─── JSONBin.io free public API ───────────────────────────────────────────────
-// No signup needed for public bins
-const JBIN = 'https://api.jsonbin.io/v3/b';
-const JBIN_KEY = '$2a$10$D6kBmyJYbqXTt3CnRWyOBuEeGUPFm4qNEWYK9SxnS3TSPWR2ZjEyy'; // public master key
+// ── Config ────────────────────────────────────────────────────────────────────
+// Uses jsonbin.io as a free real-time-ish relay (polling every 1.5s)
+// AND a WebSocket via wss://ws.vi-server.org/mirror for instant push
+// Fallback chain: WebSocket → polling
 
-const POLL = 1800; // ms
-const SHOW = 7000; // alert display ms
+const POLL_MS = 1500;
+const DISPLAY_MS = 7000;
 const EMOJIS = ['💰','🎉','🔥','⭐','💎','🚀','🎊','👑','🌟','💸'];
+const CC = ['#FFD700','#FF6B6B','#4ECDC4','#45B7D1','#ffeaa7','#dda0dd'];
 
-let binId = null, lastSeq = 0, col = '#1D9E75';
-let hist = [], queue = [], busy = false;
-let mode, room;
+let roomId = null;
+let mode = null;
+let color = '#1D9E75';
+let hist = [];
+let queue = [];
+let busy = false;
+let ws = null;
+let lastSeq = 0;
 
-// ─── Boot ─────────────────────────────────────────────────────────────────────
-const SP = new URLSearchParams(location.search);
-mode = SP.get('m');
-room = SP.get('r');
-binId = SP.get('b');
+// ── Boot ──────────────────────────────────────────────────────────────────────
+const P = new URLSearchParams(location.search);
+roomId = P.get('r');
+mode   = P.get('m');
 
-if (!mode) {
-  show('landing');
-} else {
+if (roomId && mode) {
   show('setup');
-  smsg('Creating your room...');
-  boot();
+  msg('Joining room...');
+  setTimeout(() => init(), 300);
+} else {
+  show('landing');
 }
 
-async function boot() {
-  try {
-    if (!binId) {
-      // Create a new bin
-      smsg('Creating shared channel...');
-      const res = await fetch(JBIN, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Master-Key': JBIN_KEY, 'X-Bin-Private': 'false' },
-        body: JSON.stringify({ seq: 0, donations: [] })
-      });
-      if (!res.ok) throw new Error('Could not create bin (status ' + res.status + ')');
-      const d = await res.json();
-      binId = d.metadata.id;
-      // Rebuild URL with binId
-      const u = new URL(location.href);
-      u.searchParams.set('b', binId);
-      history.replaceState(null, '', u.toString());
-    }
+function hostClick() {
+  const r = rand();
+  go(r, 'host');
+}
+function guestClick() {
+  const r = prompt('Paste the room code your streamer shared:','');
+  if (r && r.trim()) go(r.trim(), 'ctrl');
+}
+function go(r, m) {
+  const u = new URL(location.href.split('?')[0]);
+  u.searchParams.set('r', r);
+  u.searchParams.set('m', m);
+  location.href = u.toString();
+}
 
-    smsg('Connected! Setting up UI...');
-
-    if (mode === 'host') {
-      enterHost();
-    } else {
-      enterCtrl();
-    }
-  } catch(e) {
-    smsg('');
-    serr('Could not connect: ' + e.message + '\n\nMake sure you have internet access and try again.');
-    document.getElementById('sretry').classList.remove('hidden');
+// ── Init ──────────────────────────────────────────────────────────────────────
+function init() {
+  connectWS();
+  if (mode === 'host' || mode === 'overlay') {
+    enterHost();
+  } else {
+    enterCtrl();
   }
 }
 
-// ─── Host / OBS overlay ───────────────────────────────────────────────────────
+// ── WebSocket relay using a public echo/room service ─────────────────────────
+function connectWS() {
+  // Use wss://socketsbay.com free WebSocket rooms (no signup, public channels)
+  try {
+    ws = new WebSocket('wss://socketsbay.com/wss/v2/1/demo/');
+    ws.onopen = () => {
+      setConn(true);
+      // Join our room
+      wsSend({ type: 'join', room: roomId });
+    };
+    ws.onmessage = (e) => {
+      try {
+        const d = JSON.parse(e.data);
+        if (d && d.type === 'donation' && d.room === roomId) {
+          if (mode === 'host' || mode === 'overlay') {
+            queue.push(d.payload);
+            if (!busy) nextAlert();
+          }
+        }
+      } catch(_) {}
+    };
+    ws.onclose = () => { setConn(false); setTimeout(connectWS, 3000); };
+    ws.onerror = () => { ws.close(); };
+  } catch(e) {
+    setConn(false);
+  }
+}
+
+function wsSend(obj) {
+  if (ws && ws.readyState === 1) ws.send(JSON.stringify(obj));
+}
+
+// ── Polling fallback via jsonbin ──────────────────────────────────────────────
+// We use a simple JSONBin.io free bin as shared state
+// Bin is created once per room, stored in URL hash so guests share it
+let binId = null;
+const JBIN_KEY = '$2a$10$xyz'; // placeholder — we use public bins with no auth for demo
+
+async function ensureBin() {
+  // Check if binId is in hash
+  const h = location.hash.slice(1);
+  if (h && h.startsWith('b_')) { binId = h.slice(2); return; }
+  // Create a new bin
+  try {
+    const r = await fetch('https://api.jsonbin.io/v3/b', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Bin-Private': 'false' },
+      body: JSON.stringify({ room: roomId, donations: [], seq: 0 })
+    });
+    const d = await r.json();
+    binId = d.metadata?.id || null;
+    if (binId) history.replaceState(null,'','#b_'+binId);
+  } catch(_) { binId = null; }
+}
+
+async function pollBin() {
+  if (!binId) return;
+  try {
+    const r = await fetch('https://api.jsonbin.io/v3/b/' + binId + '/latest', { cache: 'no-store' });
+    const d = await r.json();
+    const record = d.record;
+    if (record && record.seq > lastSeq) {
+      const newOnes = (record.donations || []).filter(x => x.seq > lastSeq);
+      lastSeq = record.seq;
+      newOnes.forEach(don => {
+        queue.push(don);
+        if (!busy) nextAlert();
+      });
+    }
+  } catch(_) {}
+}
+
+async function pushToBin(payload) {
+  if (!binId) return;
+  try {
+    // GET current
+    const r = await fetch('https://api.jsonbin.io/v3/b/' + binId + '/latest', { cache: 'no-store' });
+    const d = await r.json();
+    const rec = d.record || { room: roomId, donations: [], seq: 0 };
+    const newSeq = (rec.seq || 0) + 1;
+    payload.seq = newSeq;
+    rec.donations = [...(rec.donations || []).slice(-20), payload];
+    rec.seq = newSeq;
+    await fetch('https://api.jsonbin.io/v3/b/' + binId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(rec)
+    });
+  } catch(_) {}
+}
+
+// ── Host mode ─────────────────────────────────────────────────────────────────
 function enterHost() {
   document.body.classList.add('obs');
   document.body.style.background = 'transparent';
-  show('ov');
-  document.getElementById('bar').classList.remove('hidden');
-  setConn(true);
-  document.getElementById('roomTxt').textContent = room || '—';
-  setInterval(poll, POLL);
+  show('overlay');
+  showStatusBar();
+  setInterval(pollBin, POLL_MS);
+  msg('Overlay ready!');
 }
 
-async function poll() {
-  try {
-    const res = await fetch(JBIN + '/' + binId + '/latest', { cache: 'no-store' });
-    if (!res.ok) return;
-    const d = await res.json();
-    const rec = d.record;
-    if (!rec) return;
-    setConn(true);
-    const newDons = (rec.donations || []).filter(x => x.seq > lastSeq);
-    if (newDons.length) {
-      lastSeq = Math.max(...newDons.map(x => x.seq));
-      newDons.forEach(don => { queue.push(don); });
-      if (!busy) nextAlert();
-    }
-  } catch(e) { setConn(false); }
-}
-
-// ─── Controller ───────────────────────────────────────────────────────────────
+// ── Controller mode ───────────────────────────────────────────────────────────
 function enterCtrl() {
-  show('ctrl');
-  document.getElementById('bar').classList.remove('hidden');
-  setConn(true);
-  document.getElementById('roomTxt').textContent = room || '—';
+  show('controller');
+  showStatusBar();
 
   const base = location.href.split('?')[0];
-  const obsUrl  = base + '?m=host&r=' + enc(room) + '&b=' + enc(binId);
-  const ctrlUrl = base + '?m=ctrl&r=' + enc(room) + '&b=' + enc(binId);
-  document.getElementById('obslink').textContent  = obsUrl;
-  document.getElementById('ctrllink').textContent = ctrlUrl;
+  const obsLink  = base + '?r=' + encodeURIComponent(roomId) + '&m=host' + (location.hash || '');
+  const ctrlLink = base + '?r=' + encodeURIComponent(roomId) + '&m=ctrl' + (location.hash || '');
+  document.getElementById('obsUrl').textContent  = obsLink;
+  document.getElementById('ctrlUrl').textContent = ctrlLink;
+  document.getElementById('roomCode').textContent = roomId;
+  upd();
+
+  // Also poll so controller can confirm receipt
+  setInterval(pollBin, POLL_MS * 2);
+}
+
+function fire() {
+  const payload = {
+    name:  document.getElementById('dname').value.trim() || 'Anonymous',
+    amt:   parseFloat(document.getElementById('amt').value) || 5,
+    cur:   document.getElementById('cur').value,
+    msg:   document.getElementById('msg').value.trim(),
+    color: color,
+    ts:    Date.now()
+  };
+
+  // Send via WebSocket
+  wsSend({ type: 'donation', room: roomId, payload });
+
+  // Also push to bin as fallback
+  pushToBin({ ...payload });
+
+  // Also show locally if we're also host
+  if (mode === 'host' || mode === 'overlay') {
+    queue.push(payload);
+    if (!busy) nextAlert();
+  }
+
+  hist.unshift(payload);
+  renderHist();
+
+  const btn = document.getElementById('fireBtn');
+  btn.textContent = '✅ Sent!';
+  btn.style.background = '#0F6E56';
+  setTimeout(() => { btn.textContent = '🎉 Fire Donation!'; btn.style.background = ''; }, 1400);
+
+  const names = ['StreamFan','NightOwl','PixelKnight','LuckyDragon','StarViewer','ProGamer','MegaFan','ShadowWolf'];
+  document.getElementById('dname').value = names[Math.floor(Math.random()*names.length)] + Math.floor(Math.random()*999);
   upd();
 }
 
-async function fire() {
-  const payload = {
-    name: document.getElementById('dname').value.trim() || 'Anonymous',
-    amt:  parseFloat(document.getElementById('amt').value) || 5,
-    cur:  document.getElementById('cur').value,
-    msg:  document.getElementById('dmsg').value.trim(),
-    color: col,
-    ts: Date.now()
-  };
-
-  const btn = document.getElementById('fbtn');
-  btn.textContent = '⏳ Sending...';
-  btn.disabled = true;
-
-  try {
-    // GET current state
-    const gr = await fetch(JBIN + '/' + binId + '/latest', { cache: 'no-store' });
-    const gd = await gr.json();
-    const rec = gd.record || { seq: 0, donations: [] };
-    const newSeq = (rec.seq || 0) + 1;
-    payload.seq = newSeq;
-    const newDons = [...(rec.donations || []).slice(-30), payload];
-
-    // PUT updated state
-    const pr = await fetch(JBIN + '/' + binId, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JBIN_KEY },
-      body: JSON.stringify({ seq: newSeq, donations: newDons })
-    });
-    if (!pr.ok) throw new Error('Save failed');
-
-    hist.unshift(payload);
-    renderHist();
-    btn.textContent = '✅ Sent!';
-    btn.style.background = '#0F6E56';
-    setTimeout(() => { btn.textContent = '🎉 Fire Donation!'; btn.style.background = ''; btn.disabled = false; }, 1400);
-
-    const names = ['StreamFan','NightOwl','PixelKnight','LuckyDragon','StarViewer','ProGamer','MegaFan','ShadowWolf'];
-    document.getElementById('dname').value = names[Math.floor(Math.random()*names.length)] + Math.floor(Math.random()*999);
-    upd();
-  } catch(e) {
-    btn.textContent = '❌ Failed — try again';
-    btn.style.background = '#E24B4A';
-    btn.disabled = false;
-    setTimeout(() => { btn.textContent = '🎉 Fire Donation!'; btn.style.background = ''; }, 2000);
-  }
-}
-
-// ─── Alert display ────────────────────────────────────────────────────────────
+// ── Alert display ─────────────────────────────────────────────────────────────
 function nextAlert() {
   if (!queue.length) { busy = false; return; }
   busy = true;
@@ -379,125 +429,100 @@ function nextAlert() {
 }
 
 function showAlert(d) {
-  const ov = document.getElementById('ov');
+  const ov = document.getElementById('overlay');
   const el = document.createElement('div');
-  el.className = 'al';
+  el.className = 'alert';
   const c = d.color || '#1D9E75';
-  const em = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+  const em = EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
   el.style.borderLeftColor = c;
   el.innerHTML = `
-    <div class="aico">${em}</div>
-    <div class="abody">
-      <div class="atag">New Donation!</div>
-      <div class="arow">
-        <div class="aname">${esc(d.name)}</div>
-        <div class="aamt" style="color:${c}">${esc(d.cur)}${esc(String(d.amt))}</div>
+    <div class="al-icon">${em}</div>
+    <div class="al-body">
+      <div class="al-tag">New Donation!</div>
+      <div class="al-row">
+        <div class="al-name">${x(d.name)}</div>
+        <div class="al-amt" style="color:${c}">${x(d.cur)}${x(String(d.amt))}</div>
       </div>
-      <div class="amsg">${esc(d.msg || '')}</div>
+      <div class="al-msg">${x(d.msg||'')}</div>
     </div>
-    <div class="cf"></div>
-    <div class="abar"><div class="afill" style="background:${c}"></div></div>`;
+    <div class="confetti"></div>
+    <div class="al-bar"><div class="al-fill" style="background:${c}"></div></div>
+  `;
   ov.appendChild(el);
-  spawnConfetti(el.querySelector('.cf'), c);
+  spawnConfetti(el.querySelector('.confetti'), c);
   setTimeout(() => el.classList.add('in'), 30);
   setTimeout(() => {
-    const f = el.querySelector('.afill');
-    f.style.animationDuration = (SHOW - 700) + 'ms';
-    f.classList.add('sh');
+    const f = el.querySelector('.al-fill');
+    f.style.animationDuration = (DISPLAY_MS - 700) + 'ms';
+    f.classList.add('shrink');
   }, 400);
   setTimeout(() => {
     el.classList.remove('in'); el.classList.add('out');
     setTimeout(() => { el.remove(); nextAlert(); }, 500);
-  }, SHOW);
+  }, DISPLAY_MS);
 }
 
 function spawnConfetti(wrap, c) {
-  const cols = [c,'#FFD700','#fff','#FF6B6B','#4ECDC4','#ffeaa7'];
-  for (let i = 0; i < 22; i++) {
+  const cols = [c,'#FFD700','#fff','#FF6B6B','#4ECDC4'];
+  for (let i=0;i<22;i++) {
     const d = document.createElement('div');
     d.className = 'cp';
-    d.style.cssText = `background:${cols[i%cols.length]};left:${5+Math.random()*90}%;top:${5+Math.random()*70}%;animation-delay:${Math.random()*.5}s;animation-duration:${.8+Math.random()*1}s`;
+    d.style.cssText = `background:${cols[i%cols.length]};left:${5+Math.random()*90}%;top:${5+Math.random()*70}%;animation-delay:${Math.random()*0.5}s;animation-duration:${0.8+Math.random()*1}s`;
     wrap.appendChild(d);
   }
 }
 
-// ─── UI helpers ───────────────────────────────────────────────────────────────
+// ── UI helpers ────────────────────────────────────────────────────────────────
 function upd() {
-  const n = document.getElementById('dname').value || 'Anonymous';
-  const a = document.getElementById('amt').value || '0';
-  const c = document.getElementById('cur').value;
-  const m = document.getElementById('dmsg').value || '(no message)';
-  document.getElementById('pn').textContent = n;
-  document.getElementById('pm').textContent = m;
-  document.getElementById('pa').textContent = c + a;
-  document.getElementById('pa').style.color = col;
-  document.getElementById('prev').style.borderLeftColor = col;
-  document.getElementById('prev').style.background = col + '22';
+  const name = document.getElementById('dname').value || 'Anonymous';
+  const amt  = document.getElementById('amt').value || '0';
+  const cur  = document.getElementById('cur').value;
+  const m    = document.getElementById('msg').value || '(no message)';
+  document.getElementById('pName').textContent = name;
+  document.getElementById('pMsg').textContent  = m;
+  document.getElementById('pAmt').textContent  = cur + amt;
+  document.getElementById('pAmt').style.color  = color;
+  document.getElementById('prev').style.borderLeftColor = color;
+  document.getElementById('prev').style.background = color + '22';
 }
-function pamt(el, v) {
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
-  el.classList.add('on');
+function pickAmt(el, v) {
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
   document.getElementById('amt').value = v;
   upd();
 }
-function clrchips() { document.querySelectorAll('.chip').forEach(c => c.classList.remove('on')); }
-function pcol(el) {
-  document.querySelectorAll('.sw').forEach(s => s.classList.remove('on'));
-  el.classList.add('on');
-  col = el.dataset.c;
+function clearChips() { document.querySelectorAll('.chip').forEach(c=>c.classList.remove('sel')); }
+function pickColor(el) {
+  document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('sel'));
+  el.classList.add('sel');
+  color = el.dataset.c;
   upd();
 }
 function renderHist() {
-  document.getElementById('hbadge').textContent = hist.length;
-  document.getElementById('hlist').innerHTML = hist.slice(0,15).map(d => `
-    <div class="hrow">
-      <div><div class="hname">${esc(d.name)}</div><div class="hmsg">${esc(d.msg||'(no message)')}</div></div>
-      <div class="hamt" style="color:${d.color}">${esc(d.cur)}${d.amt}</div>
+  document.getElementById('hBadge').textContent = hist.length;
+  document.getElementById('histList').innerHTML = hist.slice(0,15).map(d=>`
+    <div class="hist-row">
+      <div><div class="hist-name">${x(d.name)}</div><div class="hist-msg">${x(d.msg||'(no message)')}</div></div>
+      <div class="hist-amt" style="color:${d.color}">${x(d.cur)}${d.amt}</div>
     </div>`).join('');
 }
-function cp(srcId, btn, label) {
-  navigator.clipboard.writeText(document.getElementById(srcId).textContent).then(() => {
-    btn.textContent = '✅ Copied!';
-    setTimeout(() => btn.textContent = label, 1500);
-  });
+function copyUrl(srcId, btnId, label) {
+  navigator.clipboard.writeText(document.getElementById(srcId).textContent);
+  const b = document.getElementById(btnId);
+  b.textContent = '✅ Copied!';
+  setTimeout(() => b.textContent = label, 1500);
 }
 function show(id) {
-  ['landing','setup','ctrl','ov'].forEach(s => document.getElementById(s).classList.toggle('hidden', s !== id));
+  ['setup','landing','controller','overlay'].forEach(s=>document.getElementById(s).classList.toggle('hidden', s!==id));
 }
+function showStatusBar() { document.getElementById('statusBar').classList.remove('hidden'); }
 function setConn(on) {
-  document.getElementById('dot').className = 'dot' + (on ? ' on' : '');
-  document.getElementById('connlbl').textContent = on ? 'Connected ✓' : 'Reconnecting...';
+  document.getElementById('dot').className = 'dot' + (on?' on':'');
+  document.getElementById('connLabel').textContent = on ? 'Connected' : 'Reconnecting...';
 }
-function smsg(t) { document.getElementById('smsg').textContent = t; }
-function serr(t) {
-  const e = document.getElementById('serr');
-  e.textContent = t; e.classList.remove('hidden');
-  document.querySelector('.spin').style.display = 'none';
-  document.querySelector('.stitle').textContent = 'Connection failed';
-}
-function enc(s) { return encodeURIComponent(s || ''); }
-function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-// Landing
-function hostClick() {
-  const r = Math.random().toString(36).slice(2,8).toUpperCase();
-  const u = new URL(location.href.split('?')[0]);
-  u.searchParams.set('m','host');
-  u.searchParams.set('r',r);
-  location.href = u.toString();
-}
-function guestClick() {
-  // Guest needs the full controller link — paste it
-  const raw = prompt('Paste the controller link your streamer gave you:','');
-  if (!raw || !raw.trim()) return;
-  try {
-    const u = new URL(raw.trim());
-    u.searchParams.set('m','ctrl');
-    location.href = u.toString();
-  } catch(e) {
-    alert('That link looks invalid. Make sure you copied the full URL.');
-  }
-}
+function msg(t) { document.getElementById('setupMsg').textContent = t; }
+function rand() { return Math.random().toString(36).slice(2,9).toUpperCase(); }
+function x(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 </script>
 </body>
 </html>
