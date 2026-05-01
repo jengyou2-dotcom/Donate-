@@ -142,12 +142,10 @@ async function fire() {
         'Content-Type': 'application/json',
         'X-Master-Key': JBIN_KEY
       },
-      body: JSON.stringify({
-        record: {
-          seq: newSeq,
-          donations: newDons
-        }
-      })
+     body: JSON.stringify({
+  seq: newSeq,
+  donations: newDons
+})
     });
 
     if (!res.ok) throw new Error(await res.text());
