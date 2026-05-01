@@ -16,7 +16,7 @@ const JBIN_KEY = '$2a$10$Kz2mznm8rZktsakdVWFfn.Cl0Hbu3QNEfyBj2YpFElKJ7XMEnV/NS';
 
 const POLL = 3000;
 
-let binId = null, lastSeq = 0;
+let binId = null, lastSeq = -1;
 let mode, room;
 
 const SP = new URLSearchParams(location.search);
@@ -96,11 +96,11 @@ async function poll() {
   try {
     const rec = await getRecord();
 
-    const newDons = rec.donations.filter(d => d.seq > lastSeq);
+    console.log("DATA:", rec); // debug
 
-    if (newDons.length) {
-      lastSeq = Math.max(...newDons.map(d => d.seq));
-      newDons.forEach(showAlert);
+    if (rec.donations.length) {
+      rec.donations.forEach(showAlert);
+      lastSeq = rec.seq;
     }
 
   } catch (e) {
