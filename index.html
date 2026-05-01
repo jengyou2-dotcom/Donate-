@@ -32,12 +32,10 @@ if (!mode) {
     <button onclick="hostClick()">Host</button>
     <button onclick="guestClick()">Join</button>
   `;
-  
 } else {
   boot();
 }
 
-  
 // ───── BOOT ─────
 async function boot() {
   try {
@@ -91,32 +89,8 @@ async function getRecord() {
 
 // ───── HOST ─────
 function enterHost() {
-  document.body.innerHTML = `
-    <h2>OBS Overlay Running...</h2>
-    <button onclick="enableAudio()">🔊 Enable Sound</button>
-  `;
-
+  document.body.innerHTML = "<h2>OBS Overlay Running...</h2>";
   setInterval(poll, POLL);
-}
-
-let audioUnlocked = false;
-
-function enableAudio() {
-  audioUnlocked = true;
-
-  // create a real silent audio (safe)
-  const ctx = new (window.AudioContext || window.webkitAudioContext)();
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-
-  gain.gain.value = 0; // silent
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-
-  osc.start();
-  osc.stop(ctx.currentTime + 0.01);
-
-  alert("Sound enabled!");
 }
 
 async function poll() {
@@ -185,34 +159,27 @@ async function fire() {
     alert("Failed: " + e.message);
   }
 }
+// --spech
+ function speakDonation(d) {
+  const text = d.msg
+    ? `${d.name} donated ${d.cur}${d.amt}. ${d.msg}`
+    : `${d.name} donated ${d.cur}${d.amt}`;
 
-// ----- Speech //
-function speakDonation(d) {
-  if (!audioUnlocked) return;
-
-  const text = `${d.name} โดเนท ${d.amt} บาท ${d.msg || ""}`;
-
-  const url = "https://translate.google.com/translate_tts?ie=UTF-8&tl=th&client=tw-ob&q=" 
-              + encodeURIComponent(text);
-
-  const audio = new Audio();
-  audio.src = url;
-  audio.crossOrigin = "anonymous";
-
-  audio.play().catch(err => {
-    console.log("TTS failed, fallback:", err);
-
-    // 🔥 fallback to browser voice (so it NEVER breaks)
-    fallbackSpeak(text);
-  });
-}
-
-function fallbackSpeak(text) {
   const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = "th-TH";
-  speechSynthesis.speak(utter);
-}  
 
+  // voice settings
+  utter.rate = 1;
+  utter.pitch = 2; // keep it natural (3 is too high)
+  utter.volume = 1;
+
+  const voices = speechSynthesis.getVoices();
+  if (voices.length > 0) {
+    utter.voice = voices.find(v => v.lang.includes("en")) || voices[0];
+  }
+
+  speechSynthesis.cancel(); // prevent overlap
+  speechSynthesis.speak(utter);
+}
 // ───── ALERT ─────
 function showAlert(d) {
   const el = document.createElement('div');
@@ -231,7 +198,6 @@ function showAlert(d) {
   // 🔥 ADD THIS LINE
   speakDonation(d);
 }
-
 
 // ───── NAV ─────
 function hostClick() {
